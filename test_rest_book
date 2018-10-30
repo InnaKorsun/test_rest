@@ -1,0 +1,70 @@
+import unittest
+import requests
+
+
+class CreateBookTests(unittest.TestCase):
+
+    @classmethod
+    def setUp(self):
+
+        self.book_url  = "http://pulse-rest-testing.herokuapp.com/books/"
+        self.new_book = {"title": "Fight club", "author": "Chack Pallanik"}
+        self.list_book = [{"title": "Djerelo", "author": "Ann Read"},
+            {"title": "Unittest tutorial", "author": "InnaK"}]
+
+        self.book_ids = []
+
+    #@unittest.skipIf(sys.platform.startswith("darwin"), "Not implemented on MacOS version")
+
+    def test_create_book_positive(self):
+        response = requests.post(self.book_url, data=self.new_book)
+        self.assertEqual(response.status_code, 201)
+        body = response.json()
+        for key in self.new_book:
+            self.assertEqual(body[key], self.new_book[key])
+        self.new_book["id"] = body["id"]
+        self.assertEqual(self.new_book,body)
+        #check that item present in book's list
+        res = requests.get(self.book_url + str(body["id"]))
+        self.assertEqual(res.status_code,200)
+        self.book_ids.append(body["id"])
+
+    #add list book
+    #def test_create_list_books_pos(self):
+    #    for item in self.list_book:
+    #        with self.subTest(item = self.list_book):
+    #            responce = requests.post(self.book_url,data = item)
+    #           self.assertEqual(responce.status_code,201)
+    #            body = responce.json()
+                #for key in self.new_book:
+                 #   self.assertEqual(body[key], self.new_book[key])
+
+    def test_create_book_withou_author_neg(self):
+
+        book = {"title": "Eat,pray,love"}
+        response = requests.post(self.book_url, data=book)
+        self.assertEqual(response.status_code, 400)
+
+    def tearDown(self):
+        for book_id in self.book_ids:
+            r = requests.delete(self.book_url + str(book_id))
+
+
+if __name__ == "__main__":
+    # from HtmlTestRunner import HTMLTestRunner
+    # unittest.main(verbosity=2, testRunner=HTMLTestRunner(output=r"E:\workspace\untitled3"))
+    unittest.main(verbosity=2)
+    # # test2 = CreateBookTests("test_two")
+    # # # test1.run()
+    # # result = test2.run()
+    # # print(result)
+    # # test1 = CreateBookTests("one")
+    # # result = test1.run()
+    # # test1.test_two()
+    # # test1.test_one()
+    # test_suite = unittest.TestLoader().loadTestsFromTestCase(CreateBookTests)
+    # # # test_suite.addTest(test1)
+    # # # test_suite.addTest(test2)
+    # result = unittest.TestResult()
+    # test_suite.run(result)
+    # print(result)
