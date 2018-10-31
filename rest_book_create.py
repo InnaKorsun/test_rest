@@ -79,6 +79,25 @@ class CreateBookTests(unittest.TestCase):
         response = requests.post(self.book_url, data=book)
         self.assertEqual(response.status_code, 400)
 
+    def test_create_title_max_len(self):
+        # create book with title with more than max length (max is 50)
+        #each elements statrs with number og symbol in title
+        titles = ["51Maxlengthisfiftypointmxmxmxmxmxmxmxmxmxmxmxmxmxmmxm","50Maxlengthisfiftypointmxmxmxmxmxmxmxmxmxmxmxmxmxm",
+                  "49Maxlengthisfiftypointmxmxmxmxmxmxmxmxmxmxmxmxmx"]
+
+        for title in titles:
+            with self.subTest(item=title):
+                book = {"title": title, "author": "InnaK"}
+                if title.startswith("49") or title.startswith("50"):# check if title contain 49 or 50 symbol  - book should created
+                    response = requests.post(self.book_url, data=book)
+                    self.assertEqual(response.status_code, 201)
+                    body = response.json()
+                    res = requests.get(self.book_url + str(body["id"]))#check that item present in book's list
+                    self.assertEqual(res.status_code, 200)
+                    self.book_ids.append(body["id"])
+                else:
+                    response = requests.post(self.book_url, data=book)# check if title contain 51 symbol s - book shouldn't created
+                    self.assertEqual(response.status_code,400)
 
     @classmethod
     def tearDown(self):
