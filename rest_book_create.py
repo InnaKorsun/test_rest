@@ -81,9 +81,11 @@ class CreateBookTests(unittest.TestCase):
 
     def test_create_title_max_len(self):
         # create book with title with more than max length (max is 50)
-        #each elements statrs with number og symbol in title
-        titles = ["51Maxlengthisfiftypointmxmxmxmxmxmxmxmxmxmxmxmxmxmmxm","50Maxlengthisfiftypointmxmxmxmxmxmxmxmxmxmxmxmxmxm",
-                  "49Maxlengthisfiftypointmxmxmxmxmxmxmxmxmxmxmxmxmx"]
+        #each elements statrs with number (len of string))
+        titles = []
+        for i in range(49,52):
+            s = str(i) + "s"*(i-2)
+            titles.append(s)
 
         for title in titles:
             with self.subTest(item=title):

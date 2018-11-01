@@ -57,6 +57,5 @@ class UpdateBookTests(unittest.TestCase):
         self.assertEqual(r.status_code,400)
 
 
-
     def tearDown(self):
         r = requests.delete(self.book_url + str(self.book_id))
