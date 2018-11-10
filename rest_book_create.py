@@ -3,7 +3,7 @@ import requests
 import requests
 
 
-class CreateBookTests(unittest.TestCase):
+class CreateBookTestsPositive(unittest.TestCase):
 
     #list with book id which should be deleted in tearDown
     book_ids = []
@@ -45,17 +45,7 @@ class CreateBookTests(unittest.TestCase):
                 res = requests.get(self.book_url + str(body["id"]))#check that item present in book's list
                 self.assertEqual(res.status_code, 200)
 
-    def test_create_book_withou_author_neg(self):
 
-        book = {"title": "Eat,pray,love"} #try create book with only title should create 400 status code
-        response = requests.post(self.book_url, data=book)
-        self.assertEqual(response.status_code, 400)
-
-    def test_create_book_withou_title_neg(self):
-
-        book = {"author": "InnaK"}#try create book with only author should create 400 status code
-        response = requests.post(self.book_url, data=book)
-        self.assertEqual(response.status_code, 400)
 
     def test_create_book_with_id(self):#try create book with id should create 200 status code and create book with default id
 
@@ -73,17 +63,27 @@ class CreateBookTests(unittest.TestCase):
         self.book_ids.append(body["id"])#add id book to list which should be deleted in tearDown
 
 
-    def test_create_empty_book_neg(self):#try create book with only title should create 400 status code
 
-        book = {"title":"","author":"" }
+    def test_create_book_Speacial_symb(self):
+        book = {"title":"1234567890q@#$%^&*()_+ []{}:;'§!<>","author":"1234567890q@#$%^&*()_+ []{}:;'§!<>" }
         response = requests.post(self.book_url, data=book)
-        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.status_code, 201)
+        body = response.json()
+
+        book["id"] = body["id"] # add to json id book
+        self.assertEqual(book, body)
+
+        res = requests.get(self.book_url + str(body["id"]))#check that item present in book's list
+        self.assertEqual(res.status_code, 200)
+        self.book_ids.append(body["id"])
+
+
 
     def test_create_title_max_len(self):
         # create book with title with more than max length (max is 50)
         #each elements statrs with number (len of string))
         titles = []
-        for i in range(49,52):
+        for i in range(49,52): # you can variate to max len here
             s = str(i) + "s"*(i-2)
             titles.append(s)
 
@@ -105,6 +105,31 @@ class CreateBookTests(unittest.TestCase):
     def tearDown(self):
         for book_id in self.book_ids:
             r = requests.delete(self.book_url + str(book_id))
+
+class CreateBookNegative(unittest.TestCase):
+
+    @classmethod
+    def setUp(self):
+
+        self.book_url = "http://pulse-rest-testing.herokuapp.com/books/"
+
+    def test_create_book_withou_author_neg(self):
+
+        book = {"title": "Eat,pray,love"} #try create book with only title should create 400 status code
+        response = requests.post(self.book_url, data=book)
+        self.assertEqual(response.status_code, 400)
+
+    def test_create_book_withou_title_neg(self):
+
+        book = {"author": "InnaK"}#try create book with only author should create 400 status code
+        response = requests.post(self.book_url, data=book)
+        self.assertEqual(response.status_code, 400)
+
+    def test_create_empty_book_neg(self):#try create book with only title should create 400 status code
+
+        book = {"title":"","author":"" }
+        response = requests.post(self.book_url, data=book)
+        self.assertEqual(response.status_code, 400)
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)

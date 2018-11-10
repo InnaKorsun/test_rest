@@ -1,5 +1,8 @@
 import unittest
 import requests
+import HtmlTestRunner
+from HtmlTestRunner import HTMLTestRunner
+
 
 class DeleteBookTests(unittest.TestCase):
 
@@ -31,6 +34,6 @@ class DeleteBookTests(unittest.TestCase):
         r = requests.delete(self.book_url + str(self.book_id+10000))# try delete book with d which doesn;t exist
         self.assertEqual(r.status_code,404)#check that book deleted(by status code)
 
-
-
+if __name__=="__main__":
+    unittest.main()
 

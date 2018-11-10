@@ -8,44 +8,44 @@ class CreateRolesTestsPositive(unittest.TestCase):
 
     @classmethod
     def setUp(self):
-
+        """
+        create a book (role refers to book)
+        and
+        role(test item which should be updated)
+        """
+        #Create a book(role should contain a field with refer to book)
         response = requests.post("http://pulse-rest-testing.herokuapp.com/books",
                                  data={"title": "Fight club", "author": "Chack Pallanik"})
         assert(response.status_code==201)
         body = response.json()
+        #add id book to self attribute
         self.id_book = body["id"]
 
+        #create role which should be updated
         self.role_url = "http://pulse-rest-testing.herokuapp.com/roles/"
-        self.new_role = {"name": "Volan de Mort", "type": "Lord", "level":1, "book":self.id_book}
-        self.list_role = [{"name": "Albus Dambldor", "type": "Wizzard", "level":1, "book":self.id_book},
-                          {"name": "Gandalf", "type": "Maya", "level":1, "book":self.id_book},
-                          {"id":300,"name": "Gandalf", "type": "Maya", "level":1, "book":self.id_book},
-                          {"name": "Volan de Mort", "type":"Lord","level":1.0, "book":self.id_book}
-                          ]
+        self.new_role ={"name": "Volan de Mort", "type": "Lord", "level":1, "book":self.id_book}
+        res = requests.post(self.role_url,data = self.new_role)
+        assert(res.status_code==201)
+        #add id role to self attribute
+        self.id_role = res.json()["id"]
 
 
-    # add list roles
-    def test_create_list_roles_pos(self):
-        for item in self.list_role:
-            with self.subTest(item=item): #test with parameters (add one by one by from list_roles)
+    def test_update_role_type_name_level(self):
+        """
+        test to update all fields in role item
 
-                responce = requests.post(self.role_url + str(self.id_book), data=item)
-                self.assertEqual(responce.status_code, 201) #check status code
-                body = responce.json()
+        """
+        response = requests.post("http://pulse-rest-testing.herokuapp.com/books",
+                                 data={"title": "Update Item", "author": "Inna Korsun"})
+        body = response.json()
+        id_book_new = body["id"]
 
-                self.roles_ids.append(body["id"]) # add id role to list roles which should be deleted
-                item['id'] = body['id']# add id to just created role
-                self.assertEqual(item, body)
-
-                res = requests.get(self.role_url + str(body["id"]))#check that item present in roles's list
-                self.assertEqual(res.status_code, 200)
-
-    def test_create_role_with_only_req_field(self):
-        #try create role with only required field(name and type)
-
-        role = {"name": "Gandalf", "type": "Maya"}
-        response = requests.post(self.role_url, data=role)
-        self.assertEqual(response.status_code, 201)
+        res = requests.get(self.role_url + str(self.id_role))
+        level_cur = res.json()["level"]
+        role = {"name": "Gandalf", "type": "Maya","level":level_cur+10, "book":id_book_new}
+        response = requests.put(self.role_url+ str(self.id_role), data=role)
+        print(response.status_code)
+        self.assertEqual(response.status_code, 200)
 
         body = response.json()
 
@@ -54,6 +54,18 @@ class CreateRolesTestsPositive(unittest.TestCase):
 
         res = requests.get(self.role_url + str(body["id"]))#check that item present in role's list
         self.assertEqual(res.status_code, 200)
+        self.roles_ids.append(body["id"])
+        self.id_book#add id role to list which should be deleted in tearDown
+
+    def test_update_Id_role(self):
+        #try create role with only required field(name and type)
+
+        role = {"id":300}
+        response = requests.put(self.role_url+ str(self.id_role), data=role)
+        self.assertEqual(response.status_code, 200)
+
+        body = response.json()
+        self.assertNotEqual(body['id'],role['id'])
         self.roles_ids.append(body["id"])#add id role to list which should be deleted in tearDown
 
     @classmethod
@@ -63,7 +75,7 @@ class CreateRolesTestsPositive(unittest.TestCase):
         r = requests.delete("http://pulse-rest-testing.herokuapp.com/books/"+ str(self.id_book))
 
 
-class CreateRolesTestsNegative(unittest.TestCase):
+class UpdateRolesTestsNegative(unittest.TestCase):
 
     roles_ids = []
 
@@ -87,10 +99,10 @@ class CreateRolesTestsNegative(unittest.TestCase):
         for item in self.list_role:
             with self.subTest(item=item): #test with parameters (add one by one by from list_role)
 
-                responce = requests.post(self.role_url, data=item)
+                responce = requests.put(self.role_url, data=item)
                 self.assertEqual(responce.status_code, 400) #check status code
 
-
+    @unittest.skip("")
     def test_max_len_name(self):
     #max len of name field is 200
 
@@ -105,7 +117,7 @@ class CreateRolesTestsNegative(unittest.TestCase):
             with self.subTest(item=title):
                 role = {"name": title, "type": "InnaK"}
                 if title.startswith("199") or title.startswith("200"):# check if title contain 49 or 50 symbol  - book should created
-                    response = requests.post(self.role_url, data=role)
+                    response = requests.put(self.role_url, data=role)
                     self.assertEqual(response.status_code, 201)
                     body = response.json()
                     res = requests.get(self.role_url + str(body["id"]))#check that item present in book's list
